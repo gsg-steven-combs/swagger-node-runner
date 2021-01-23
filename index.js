@@ -1,31 +1,5 @@
 'use strict';
 
-/*
-Runner properties:
-  config
-  swagger
-  api  // (sway)
-  connectMiddleware()
-  resolveAppPath()
-  securityHandlers
-  bagpipes
-
-Runner events:
- responseValidationError
-
-config properties:
-  appRoot
-  mockMode
-  configDir
-  controllersDirs
-  mockControllersDirs
-  securityHandlers
- */
-
-module.exports = {
-  create: create
-};
-
 var path = require('path');
 var sway = require('sway');
 var debug = require('debug')('swagger');
@@ -39,30 +13,26 @@ var DEFAULT_FITTINGS_DIRS = [ 'api/fittings' ];
 var DEFAULT_VIEWS_DIRS = [ 'api/views' ];
 var DEFAULT_SWAGGER_FILE = 'api/swagger/swagger.yaml'; // relative to appRoot
 
-/*
-SwaggerNode config priority:
-  1. swagger_* environment vars
-  2. config passed to create()
-  3. read from swagger node in default.yaml in config directory
-  4. defaults in this file
- */
 
-function isFunction(functionToCheck) {
+const isFunction = (functionToCheck) => {
   return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
- }
+};
 
-function create(config, cb) {
 
-  if (!isFunction(cb)) { throw new Error('callback is required'); }
-  if (!config || !config.appRoot) { return cb(new Error('config.appRoot is required')); }
+module.exports = {
+  create: (config, cb) => {
 
-  new Runner(config, cb);
-}
+    if (!isFunction(cb)) { throw new Error('callback is required'); }
+    if (!config || !config.appRoot) { return cb(new Error('config.appRoot is required')); }
+  
+    new Runner(config, cb);
+  }
+};
+
 
 util.inherits(Runner, EventEmitter);
 
 function Runner(appJsConfig, cb) {
-
   EventEmitter.call(this);
 
   this.resolveAppPath = function resolveAppPath(to) {
