@@ -26,8 +26,6 @@ module.exports = {
   create: create
 };
 
-var _ = require('lodash');
-var yaml = require('js-yaml');
 var path = require('path');
 var sway = require('sway');
 var debug = require('debug')('swagger');
@@ -49,9 +47,13 @@ SwaggerNode config priority:
   4. defaults in this file
  */
 
+function isFunction(functionToCheck) {
+  return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+ }
+
 function create(config, cb) {
 
-  if (!_.isFunction(cb)) { throw new Error('callback is required'); }
+  if (!isFunction(cb)) { throw new Error('callback is required'); }
   if (!config || !config.appRoot) { return cb(new Error('config.appRoot is required')); }
 
   new Runner(config, cb);
@@ -72,18 +74,6 @@ function Runner(appJsConfig, cb) {
   };
 
   this.expressMiddleware = this.connectMiddleware;
-
-  this.restifyMiddleware = function restifyMiddleware() {
-    return require('./lib/restify_middleware')(this);
-  };
-
-  this.sailsMiddleware = function sailsMiddleware() {
-    return require('./lib/sails_middleware')(this);
-  };
-
-  this.hapiMiddleware = function hapiMiddleware() {
-    return require('./lib/hapi_middleware')(this);
-  };
 
   this.defaultErrorHandler = function() {
 
@@ -309,7 +299,9 @@ function createPipes(self) {
 function readEnvConfig() {
 
   var config = {};
-  _.each(process.env, function(value, key) {
+  const keys = Object.keys(process.env);
+  keys.map(key => {
+    const value = process.env[key];
     var split = key.split('_');
     if (split[0] === 'swagger') {
       var configItem = config;

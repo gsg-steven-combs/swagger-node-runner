@@ -2,7 +2,6 @@
 
 var debug = require('debug')('swagger:swagger_raw');
 var YAML = require('js-yaml');
-var _ = require('lodash');
 
 // default filter just drops all the x- labels
 var DROP_SWAGGER_EXTENSIONS = /^(?!x-.*)/;
@@ -46,12 +45,14 @@ module.exports = function create(fittingDef, bagpipes) {
 };
 
 function filterKeysRecursive(object, dropTagRegex, privateTags) {
-  if (_.isPlainObject(object)) {
-    if (_.any(privateTags, function(tag) { return object[tag]; })) {
+  if (typeof object === 'object') {
+    if (privateTags.find(tag => {return object[tag]})) {
       object = undefined;
     } else {
       var result = {};
-      _.each(object, function(value, key) {
+      const keys = Object.keys(object);
+      keys.map(key=> {
+        const value = object[key];
         if (dropTagRegex.test(key)) {
           var v = filterKeysRecursive(value, dropTagRegex, privateTags);
           if (v !== undefined) {
@@ -63,7 +64,8 @@ function filterKeysRecursive(object, dropTagRegex, privateTags) {
         } else {
             debug("dropping value at %s", key)
         }
-      });
+
+      })
       return result;
     }
   } else if (Array.isArray(object) ) {

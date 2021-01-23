@@ -1,7 +1,6 @@
 'use strict';
 
 var debug = require('debug')('swagger:swagger_validator');
-var _ = require('lodash');
 var util = require('util');
 
 module.exports = function create(fittingDef, bagpipes) {

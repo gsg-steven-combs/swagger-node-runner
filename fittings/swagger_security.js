@@ -3,7 +3,6 @@
 var debug = require('debug')('swagger:swagger_security');
 var async = require('async');
 var helpers = require('../lib/helpers');
-var _ = require('lodash');
 var path = require('path');
 
 module.exports = function create(fittingDef, bagpipes) {
@@ -56,7 +55,7 @@ module.exports = function create(fittingDef, bagpipes) {
             }
           },
           function andCheckDone(err) {
-            debug('Security check (%s): %s', secName, _.isNull(err) ? 'allowed' : 'denied');
+            debug('Security check (%s): %s', secName, !err ? 'allowed' : 'denied');
 
             // swap normal err and result to short-circuit the logical OR
             if (err) { return cb(undefined, err); }
@@ -66,7 +65,7 @@ module.exports = function create(fittingDef, bagpipes) {
       },
       function orCheckDone(ok, errors) { // note swapped results
 
-        var allowed = !_.isNull(ok) && ok.message === 'OK';
+        var allowed = ok && ok.message === 'OK';
         debug('Request allowed: %s', allowed);
 
         allowed ? cb() : sendSecurityError(errors[0], context.response, cb);
@@ -97,9 +96,10 @@ function sendSecurityError(err, res, next) {
   if (!err.statusCode) { err.statusCode = 403; }
 
   if (err.headers) {
-    _.each(err.headers, function (header, name) {
-      res.setHeader(name, header);
-    });
+    const keys = Object.keys(err.headers);
+    keys.map(x=> {
+      res.setHeader(x, err.headers[x]);
+    })
   }
 
   res.statusCode = err.statusCode;
